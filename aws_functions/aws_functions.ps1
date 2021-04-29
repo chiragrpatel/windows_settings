@@ -12,6 +12,7 @@ function awshelp {
     awssetprofile - Sets the AWS_PROFILE environment variable
     awssetregion - Sets the AWS_REGION environment variable
     awsunset - unsets all known AWS_* environment variables.
+    createawsenvfile - create aws env file to pass to docker
     
 
     Todo:
@@ -186,5 +187,34 @@ function awssetregion {
 function awssetdefault {
     [System.Environment]::SetEnvironmentVariable("AWS_DEFAULT_REGION","us-east-1")
     [System.Environment]::SetEnvironmentVariable("AWS_PAGER","")
+}
+<#
+ # This function can run after you set your profile locally.
+ You can pass your any of aws profile which is already set in your local machine. This function will
+ create envlist file with all necessary environment varibles which you need to run aws commands
+ #>
+function createawsenvfile {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [string]$aws_profile
+    )
+    $envlistfile = "$(Get-Location)\env.lst"
+
+    if (Test-Path $envlistfile) {
+        Remove-Item $envlistfile
+    }
+
+    #Add-Content -Path "$envlistfile" -Value "Hello World!!!"
+    $VAR_AWS_ACCESS_KEY_ID="$(aws configure get aws_access_key_id --profile $aws_profile)"
+    $VAR_AWS_SECRET_ACCESS_KEY="$(aws configure get aws_secret_access_key --profile "$AWS_PROFILE")"
+    $VAR_AWS_SESSION_TOKEN="$(aws configure get aws_session_token --profile "$AWS_PROFILE")"
+    $VAR_AWS_DEFAULT_REGION="$env:AWS_REGION"
+
+    Add-Content -Path "$envlistfile" -Value "AWS_ACCESS_KEY_ID=$VAR_AWS_ACCESS_KEY_ID"
+    Add-Content -Path "$envlistfile" -Value "AWS_SECRET_ACCESS_KEY=$VAR_AWS_SECRET_ACCESS_KEY"
+    Add-Content -Path "$envlistfile" -Value "AWS_SESSION_TOKEN=$VAR_AWS_SESSION_TOKEN"
+    Add-Content -Path "$envlistfile" -Value "AWS_DEFAULT_REGION=$VAR_AWS_DEFAULT_REGION"
+
 }
   
